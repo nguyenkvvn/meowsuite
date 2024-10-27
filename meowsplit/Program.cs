@@ -99,6 +99,24 @@ namespace meowsplit
             {
                 Console.WriteLine($"Start: {interval.start:F2}s, End: {interval.end:F2}s");
             }
+
+            double trackDuration = 0.0;
+
+            using (var reader = new AudioFileReader(audioFilePath))
+            {
+                trackDuration = reader.TotalTime.TotalSeconds;
+            }
+
+            //  Output track
+            Console.WriteLine("Track intervals interpolated:");
+            List<(double start, double end)> tracks = invertSilence(silenceIntervals, trackDuration);
+            foreach ((double s, double e) in tracks)
+            {
+                Console.WriteLine($"Start: {s:F2}s, End: {e:F2}s");
+            }
+
+            splitAudio(audioFilePath, tracks, Path.GetDirectoryName(audioFilePath));
+
         }
 
         /// <summary>
@@ -222,6 +240,117 @@ namespace meowsplit
             }
 
             return silence_intervals;
+        }
+
+        public static string exportTimestampsToCSV(List<(double, double)> segments)
+        {
+            string csv_string = "";
+
+            //  Create CSV header
+            csv_string += "track start, track end, track name, track artist" + "\n";
+
+            foreach (var d in segments)
+            {
+                csv_string += d.Item1 + "," + d.Item2 + ",,";
+            }
+
+            return csv_string;
+        }
+
+        public static List<(double, double)> invertSilence(List<(double start, double end)> silence_segments, double track_length)
+        {
+            List<(double, double)> segments = new List<(double, double)>();
+
+            double previous_silence_interval_start = 0.0;
+            double previous_silence_interval_end = 0.0;
+            double current_silence_inverval_start = 0.0;
+            double current_silence_interval_end = 0.0;
+
+            foreach ((double s, double e) in silence_segments)
+            {
+                previous_silence_interval_start = current_silence_inverval_start;
+                previous_silence_interval_end = current_silence_interval_end;
+
+                //  Handle a case of where we begin with silence
+                if (s == 0.0 || e == track_length)
+                {
+                    // redundant: beginning_of_silence = s;
+                    //  Skip over this segment
+                    continue;
+                }
+
+                current_silence_inverval_start = s;
+                current_silence_interval_end = e;
+
+                segments.Add((previous_silence_interval_end, current_silence_inverval_start));
+
+            }
+
+            return segments;
+
+        }
+
+        public static void splitAudio(string input_file_path, List<(double start, double end)> segments, string output_directory)
+        {
+            using (var reader = new AudioFileReader(input_file_path))
+            {
+                int sample_rate = reader.WaveFormat.SampleRate;
+                int channels = reader.WaveFormat.Channels;
+                int bytes_per_sample = reader.WaveFormat.BitsPerSample / 8;
+                int block_align = reader.WaveFormat.BlockAlign;
+
+                //  For every segment we want to split
+                foreach (var (start, end) in segments)
+                {
+                    string output_file_name = $"Segment_{start:F2}-{end:F2}.wav";
+                    string output_file_path = Path.Combine(output_directory, output_file_name);
+
+                    using (var writer = new WaveFileWriter(output_file_path, reader.WaveFormat))
+                    {
+                        long start_position = (long)(start * reader.WaveFormat.AverageBytesPerSecond);
+                        long end_position = (long)(end * reader.WaveFormat.AverageBytesPerSecond);
+
+                        //  Adjust positions to align with block boundaries
+                        start_position = (start_position / block_align) * block_align;
+                        end_position = (end_position / block_align) * block_align;
+
+                        //  Ensure positions are within the audio file length
+                        if (start_position < 0)
+                        {
+                            start_position = 0;
+                        }
+                        if (end_position > reader.Length)
+                        {
+                            end_position = reader.Length;
+                        }
+
+                        //  Set reader position
+                        reader.Position = start_position;
+
+                        byte[] buffer = new byte[1024 * block_align];
+
+                        while (reader.Position < end_position)
+                        {
+                            int bytes_required = (int)Math.Min(end_position - reader.Position, buffer.Length);
+                            int bytes_read = reader.Read(buffer, 0, bytes_required);
+
+                            if (bytes_read > 0)
+                            {
+                                writer.Write(buffer, 0, bytes_read);
+                            }
+                            else
+                            {
+                                break;
+                            }
+                        }
+
+                    }
+
+                    Console.WriteLine($"Segment written to: {output_file_path}");
+                }
+            }
+
+
         }
 
     }
