@@ -18,7 +18,7 @@ namespace meowsplit
             double minimumSilenceDuration = 0.25; // Minimum duration of silence in seconds
                 //  0.25s - very aggressive
                 //  0.5s - standard
-                //  0.75s & > - vert lax
+                //  0.75s & > - very lax
 
             // Check if parameters are provided
             /// In the case where the user doesn't give anything, explain to the user what the program does.
@@ -122,7 +122,7 @@ namespace meowsplit
             splitAudio(audioFilePath, tracks, Path.GetDirectoryName(audioFilePath));
 
             //  Dump the CSV for later processing
-            exportStringToFile(exportTimestampsToCSV(tracks), Path.GetDirectoryName(audioFilePath) + "\\" + $"{Path.GetFileNameWithoutExtension(audioFilePath)}_INFO.csv");
+            exportStringToFile(exportTimestampsToCSV(tracks, audioFilePath), Path.GetDirectoryName(audioFilePath) + "\\" + $"{Path.GetFileNameWithoutExtension(audioFilePath)}_INFO.csv");
 
         }
 
@@ -130,7 +130,7 @@ namespace meowsplit
         /// Calculates periods of silence in a given audio file
         /// </summary>
         /// <param name="afr_handler">Audio file stream</param>
-        /// <param name="silence_threshold">In decibels, </param>
+        /// <param name="silence_threshold">In decibels, what the "bar" ought to be for amplitude to fall under to be considered in a state of silence </param>
         /// <param name="minimum_silence_duration">In seconds, how long a period of silence should persist to count as silence</param>
         /// <returns>Returns a list of periods of silence in a given audio file</returns>
         public static List<(double, double)> detectSilence(AudioFileReader afr_handler, float silence_threshold, double minimum_silence_duration)
@@ -249,16 +249,16 @@ namespace meowsplit
             return silence_intervals;
         }
 
-        public static string exportTimestampsToCSV(List<(double, double)> segments)
+        public static string exportTimestampsToCSV(List<(double, double)> segments, string input_file_path)
         {
             string csv_string = "";
 
             //  Create CSV header
-            csv_string += "track start, track end, track length, track name, track artist" + "\n";
+            csv_string += "track start, track end, track length, track name, track artist, track album, file name" + "\n";
 
             foreach (var d in segments)
             {
-                csv_string += d.Item1 + "," + d.Item2 + "," + (d.Item2 - d.Item1) + ",," + "\n";
+                csv_string += d.Item1 + "," + d.Item2 + "," + (d.Item2 - d.Item1) + ",,,," + $"{Path.GetFileNameWithoutExtension(input_file_path)}_Segment_{d.Item1:F2}-{d.Item2:F2}" + "\n";
             }
 
             return csv_string;
