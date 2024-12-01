@@ -15,13 +15,16 @@ namespace meowsplit
             // Parameters
             string audioFilePath = "";
             float silenceThreshold = 0.01f; // Adjust this value as needed (0.0 to 1.0)
-            double minimumSilenceDuration = 0.5; // Minimum duration of silence in seconds
+            double minimumSilenceDuration = 0.25; // Minimum duration of silence in seconds
+                //  0.25s - very aggressive
+                //  0.5s - standard
+                //  0.75s & > - vert lax
 
             // Check if parameters are provided
             /// In the case where the user doesn't give anything, explain to the user what the program does.
             if (args.Length < 1)
             {
-                Console.WriteLine("Usage: SilenceDetector.exe <audiofilepath> (silenceThreshold) (minimumSilenceDuration)");
+                Console.WriteLine("Usage: meowsplit <audiofilepath> (silenceThreshold) (minimumSilenceDuration)");
                 return;
             }
             /// If the user only gives a file path, use defaults.
@@ -100,8 +103,8 @@ namespace meowsplit
                 Console.WriteLine($"Start: {interval.start:F2}s, End: {interval.end:F2}s");
             }
 
+            //  Figure out the total length of the track
             double trackDuration = 0.0;
-
             using (var reader = new AudioFileReader(audioFilePath))
             {
                 trackDuration = reader.TotalTime.TotalSeconds;
@@ -115,7 +118,11 @@ namespace meowsplit
                 Console.WriteLine($"Start: {s:F2}s, End: {e:F2}s");
             }
 
+            //  Split the audio
             splitAudio(audioFilePath, tracks, Path.GetDirectoryName(audioFilePath));
+
+            //  Dump the CSV for later processing
+            exportStringToFile(exportTimestampsToCSV(tracks), Path.GetDirectoryName(audioFilePath) + "\\" + $"{Path.GetFileNameWithoutExtension(audioFilePath)}_INFO.csv");
 
         }
 
@@ -247,49 +254,76 @@ namespace meowsplit
             string csv_string = "";
 
             //  Create CSV header
-            csv_string += "track start, track end, track name, track artist" + "\n";
+            csv_string += "track start, track end, track length, track name, track artist" + "\n";
 
             foreach (var d in segments)
             {
-                csv_string += d.Item1 + "," + d.Item2 + ",,";
+                csv_string += d.Item1 + "," + d.Item2 + "," + (d.Item2 - d.Item1) + ",," + "\n";
             }
 
             return csv_string;
         }
 
+        public static void exportStringToFile(string content, string file_path)
+        {
+            File.WriteAllText(file_path, content);
+        }
+
+        /// <summary>
+        /// Returns the inverted periods of sound from a given list of silence
+        /// </summary>
+        /// <param name="silence_segments"></param>
+        /// <param name="track_length"></param>
+        /// <returns></returns>
         public static List<(double, double)> invertSilence(List<(double start, double end)> silence_segments, double track_length)
         {
+            //  Create a list to return of the segments with music
             List<(double, double)> segments = new List<(double, double)>();
 
-            double previous_silence_interval_start = 0.0;
-            double previous_silence_interval_end = 0.0;
-            double current_silence_inverval_start = 0.0;
-            double current_silence_interval_end = 0.0;
+            //  Sort silence periods by start time
+            silence_segments.Sort((_s, _e) => _s.start.CompareTo(_e.start));
 
-            foreach ((double s, double e) in silence_segments)
+            /// Holder variable to track last previous end
+            double previous_end = 0.0;
+            
+            //  For every period of silence,
+            foreach (var (silence_start, silence_end) in silence_segments)
             {
-                previous_silence_interval_start = current_silence_inverval_start;
-                previous_silence_interval_end = current_silence_interval_end;
-
-                //  Handle a case of where we begin with silence
-                if (s == 0.0 || e == track_length)
+                //  If there is a gap between the previous end and silence start
+                if (previous_end < silence_start)
                 {
-                    // redundant: beginning_of_silence = s;
-                    //  Skip over this segment
-                    continue;
+                    //  And that period of sound is NOT smaller than X sec
+                    if (!(silence_start - previous_end < 2.0))
+                    {
+                        //  Add the sound period
+                        segments.Add((previous_end, silence_start));
+                    }
                 }
 
-                current_silence_inverval_start = s;
-                current_silence_interval_end = e;
+                //  Update the previous_end to the end of the current silence
+                previous_end = Math.Max(previous_end, silence_end);
+            }
 
-                segments.Add((previous_silence_interval_end, current_silence_inverval_start));
-
+            //  Handle a 
+            if (previous_end < track_length)
+            {
+                if (!(track_length - previous_end < 2.0))
+                {
+                    segments.Add((previous_end, track_length));
+                }
+                
             }
 
             return segments;
 
         }
 
+        /// <summary>
+        /// Splits an audio file at the given segments
+        /// </summary>
+        /// <param name="input_file_path"></param>
+        /// <param name="segments"></param>
+        /// <param name="output_directory"></param>
         public static void splitAudio(string input_file_path, List<(double start, double end)> segments, string output_directory)
         {
             using (var reader = new AudioFileReader(input_file_path))
@@ -302,7 +336,7 @@ namespace meowsplit
                 //  For every segment we want to split
                 foreach (var (start, end) in segments)
                 {
-                    string output_file_name = $"Segment_{start:F2}-{end:F2}.wav";
+                    string output_file_name = $"{Path.GetFileNameWithoutExtension(input_file_path)}_Segment_{start:F2}-{end:F2}.wav";
                     string output_file_path = Path.Combine(output_directory, output_file_name);
 
                     using (var writer = new WaveFileWriter(output_file_path, reader.WaveFormat))
