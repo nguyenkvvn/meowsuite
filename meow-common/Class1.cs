@@ -10,7 +10,7 @@ namespace meow_common
     public class MeowCommon
     {
         /// <summary>
-        /// 
+        /// Exports a freshly made set of segments into a CSV string for populating metadata into
         /// </summary>
         /// <param name="segments"></param>
         /// <param name="input_file_path"></param>
@@ -144,7 +144,7 @@ namespace meow_common
         /// <summary>
         /// The album art for this track
         /// </summary>
-        public string track_album_file_name;
+        public string track_album_art_file_name;
 
     }
 }
