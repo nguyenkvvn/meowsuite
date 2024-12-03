@@ -39,6 +39,7 @@ namespace meowtag
 
                 if (System.IO.File.Exists(current_file_path))
                 {
+                    Console.WriteLine("[Info] Tagging: " + tracks.IndexOf(t) + 1 + " [" + t.track_album + "] " + t.track_artist + " - " + t.track_name);
                     try
                     {
                         //  Open the MP3 file
@@ -83,6 +84,10 @@ namespace meowtag
 
                             file.Tag.Pictures = new[] { album_art };
                         }
+                        else
+                        {
+                            Console.WriteLine("WARNING! Album art not found: " + input_files_location_path + "\\" + t.track_album_art_file_name);
+                        }
 
                         // Save our changes
                         file.Save();
@@ -93,6 +98,10 @@ namespace meowtag
                     {
                         Console.WriteLine("Error! " + ex.Message);
                     }
+                }
+                else
+                {
+                    Console.WriteLine("WARNING! File not found: " + current_file_path);
                 }
             }
 
