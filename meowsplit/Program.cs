@@ -1,6 +1,8 @@
-﻿using NAudio.Wave;
+﻿using meow_common;
+using NAudio.Wave;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -122,8 +124,59 @@ namespace meowsplit
             splitAudio(audioFilePath, tracks, Path.GetDirectoryName(audioFilePath));
 
             //  Dump the CSV for later processing
-            exportStringToFile(exportTimestampsToCSV(tracks, audioFilePath), Path.GetDirectoryName(audioFilePath) + "\\" + $"{Path.GetFileNameWithoutExtension(audioFilePath)}_INFO.csv");
+            MeowCommon.exportStringToFile(MeowCommon.exportTimestampsToCSV(tracks, audioFilePath), Path.GetDirectoryName(audioFilePath) + "\\" + $"{Path.GetFileNameWithoutExtension(audioFilePath)}_INFO.csv");
 
+
+            //  Convert audio files to MP3
+            List<Track> test_reimport = MeowCommon.importCSVtoTracks(Path.GetDirectoryName(audioFilePath) + "\\" + $"{Path.GetFileNameWithoutExtension(audioFilePath)}_INFO.csv");
+            foreach (Track t in test_reimport)
+            {
+                string arguments = "-i " + "\"" + Path.GetDirectoryName(audioFilePath) + "\\" + t.file_name + ".wav\" " 
+                    + "-codec:a libmp3lame -qscale:a 2 "
+                    + "\"" + Path.GetDirectoryName(audioFilePath) + "\\" + t.file_name + ".mp3\" "
+                    ;
+
+                try
+                {
+                    // Create a new process start info
+                    ProcessStartInfo startInfo = new ProcessStartInfo
+                    {
+                        FileName = @"C:\includes\ffmpeg.exe",  // Application path
+                        Arguments = arguments, // Arguments to pass
+                        UseShellExecute = false, // Set to true if you want to open in shell
+                        RedirectStandardOutput = true, // Capture output
+                        RedirectStandardError = true, // Capture errors
+                        CreateNoWindow = false // Do not show a console window
+                    };
+
+                    // Start the process
+                    using (Process process = Process.Start(startInfo))
+                    {
+                        // Optional: Read output and error streams
+                        string output = process.StandardOutput.ReadToEnd();
+                        string error = process.StandardError.ReadToEnd();
+
+                        // Wait for the process to exit
+                        process.WaitForExit();
+
+                        // Output the results
+                        Console.WriteLine("Output:");
+                        Console.WriteLine(output);
+
+                        if (!string.IsNullOrEmpty(error))
+                        {
+                            Console.WriteLine("Errors:");
+                            Console.WriteLine(error);
+                        }
+
+                        Console.WriteLine($"Process exited with code: {process.ExitCode}");
+                    }
+                }
+                catch (Exception e)
+                {
+
+                }
+            }
         }
 
         /// <summary>
@@ -247,26 +300,6 @@ namespace meowsplit
             }
 
             return silence_intervals;
-        }
-
-        public static string exportTimestampsToCSV(List<(double, double)> segments, string input_file_path)
-        {
-            string csv_string = "";
-
-            //  Create CSV header
-            csv_string += "track start, track end, track length, track name, track artist, track album, file name" + "\n";
-
-            foreach (var d in segments)
-            {
-                csv_string += d.Item1 + "," + d.Item2 + "," + (d.Item2 - d.Item1) + ",,,," + $"{Path.GetFileNameWithoutExtension(input_file_path)}_Segment_{d.Item1:F2}-{d.Item2:F2}" + "\n";
-            }
-
-            return csv_string;
-        }
-
-        public static void exportStringToFile(string content, string file_path)
-        {
-            File.WriteAllText(file_path, content);
         }
 
         /// <summary>
