@@ -82,9 +82,9 @@
     <None Include="README.md" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\meow-common\meow-common.csproj">
+    <ProjectReference Include="..\meow-common\meowcommon.csproj">
       <Project>{BC8433F3-97B3-453D-A348-19AF01D2C76A}</Project>
-      <Name>meow-common</Name>
+      <Name>meowcommon</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

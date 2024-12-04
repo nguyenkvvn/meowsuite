@@ -12,9 +12,6 @@ namespace meowtag
     {
         static void Main(string[] args)
         {
-            //  Parameters
-            string inputMetaCSV = "";
-
             //  Check if parameters are provided
             if (args.Length < 1)
             {
@@ -39,7 +36,9 @@ namespace meowtag
 
                 if (System.IO.File.Exists(current_file_path))
                 {
-                    Console.WriteLine("[Info] Tagging: " + tracks.IndexOf(t) + 1 + " [" + t.track_album + "] " + t.track_artist + " - " + t.track_name);
+                    int friendly_index = tracks.IndexOf(t) + 1;
+
+                    Console.WriteLine("[Info] Tagging: " + friendly_index + " [" + t.track_album + "] " + t.track_artist + " - " + t.track_name);
                     try
                     {
                         //  Open the MP3 file

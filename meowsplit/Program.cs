@@ -59,7 +59,7 @@ namespace meowsplit
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Error! silenceThreshold must be a float value...");
+                    Console.WriteLine("Error! silenceThreshold must be a float value... " + e.Message);
                     return;
                 }
             }
@@ -80,7 +80,7 @@ namespace meowsplit
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Error! silenceThreshold must be a float value...");
+                    Console.WriteLine("Error! silenceThreshold must be a float value..." + e.Message);
                     return;
                 }
 
@@ -90,7 +90,7 @@ namespace meowsplit
                 }
                 catch (Exception e)
                 {
-                    Console.WriteLine("Error! minimumSilenceDuration must be a double value...");
+                    Console.WriteLine("Error! minimumSilenceDuration must be a double value..." + e.Message);
                     return;
                 }
             }
@@ -126,7 +126,6 @@ namespace meowsplit
             //  Dump the CSV for later processing
             MeowCommon.exportStringToFile(MeowCommon.exportTimestampsToCSV(tracks, audioFilePath), Path.GetDirectoryName(audioFilePath) + "\\" + $"{Path.GetFileNameWithoutExtension(audioFilePath)}_INFO.csv");
 
-
             //  Convert audio files to MP3
             List<Track> test_reimport = MeowCommon.importCSVtoTracks(Path.GetDirectoryName(audioFilePath) + "\\" + $"{Path.GetFileNameWithoutExtension(audioFilePath)}_INFO.csv");
             foreach (Track t in test_reimport)
@@ -153,6 +152,9 @@ namespace meowsplit
                     using (Process process = Process.Start(startInfo))
                     {
                         // Optional: Read output and error streams
+
+                        Console.WriteLine($"Converting to mp3...");
+
                         string output = process.StandardOutput.ReadToEnd();
                         string error = process.StandardError.ReadToEnd();
 
@@ -170,11 +172,26 @@ namespace meowsplit
                         }
 
                         Console.WriteLine($"Process exited with code: {process.ExitCode}");
+
+                        if (process.ExitCode == 0)
+                        {
+                            Console.WriteLine($"Deleting .wav file...");
+
+                            try
+                            {
+                                File.Delete(Path.GetDirectoryName(audioFilePath) + "\\" + t.file_name + ".wav");
+                            }
+                            catch (Exception exx)
+                            {
+                                Console.WriteLine("Error! " + exx.Message);
+                            }
+
+                        }
                     }
                 }
                 catch (Exception e)
                 {
-
+                    Console.WriteLine("Error! " + e.Message);
                 }
             }
         }

@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "meowsplit", "meowsplit\meow
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "meowtag", "meowtag\meowtag.csproj", "{7A949623-D3CA-4B34-8D66-EF8B35BEE8C1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "meow-common", "meow-common\meow-common.csproj", "{BC8433F3-97B3-453D-A348-19AF01D2C76A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "meowcommon", "meow-common\meowcommon.csproj", "{BC8433F3-97B3-453D-A348-19AF01D2C76A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
