@@ -53,7 +53,9 @@ namespace meowtag
                         file.Tag.Track = (uint)tracks.IndexOf(t) + 1;
 
                         //  Insert the album art if applicable
-                        if (File.Exists(input_files_location_path + "\\" + t.track_album_art_file_name))
+                        if ( !(String.IsNullOrWhiteSpace(t.track_album_art_file_name)) 
+                            && !(String.IsNullOrEmpty(t.track_album_art_file_name)) 
+                            && (File.Exists(input_files_location_path + "\\" + t.track_album_art_file_name)))
                         {
                             byte[] album_art_data = File.ReadAllBytes(input_files_location_path + "\\" + t.track_album_art_file_name);
 
