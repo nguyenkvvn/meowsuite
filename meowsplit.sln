@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "meowtag", "meowtag\meowtag.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "meowcommon", "meow-common\meowcommon.csproj", "{BC8433F3-97B3-453D-A348-19AF01D2C76A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "meowdisc", "meowdisc\meowdisc.csproj", "{A9482F92-E998-4906-B2B4-2BFF541185EA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{BC8433F3-97B3-453D-A348-19AF01D2C76A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BC8433F3-97B3-453D-A348-19AF01D2C76A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BC8433F3-97B3-453D-A348-19AF01D2C76A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A9482F92-E998-4906-B2B4-2BFF541185EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A9482F92-E998-4906-B2B4-2BFF541185EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A9482F92-E998-4906-B2B4-2BFF541185EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A9482F92-E998-4906-B2B4-2BFF541185EA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

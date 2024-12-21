@@ -30,6 +30,29 @@ namespace meow_common
             return csv_string;
         }
 
+        public static string exportTracksToCSV(List<Track> l_tracks)
+        {
+            string csv_string = "";
+
+            //  Create CSV header
+            csv_string += "track start, track end, track length, track name, track artist, track album, audio file name, album art file name" + "\n";
+
+            foreach (Track t in l_tracks)
+            {
+                csv_string +=
+                    t.track_start + "," +
+                    t.track_end + "," +
+                    t.track_length + "," +
+                    t.track_name + "," +
+                    t.track_artist + "," +
+                    t.track_album + "," +
+                    t.file_name + "," +
+                    t.track_album_art_file_name + "\n";
+            }
+
+            return csv_string;
+        }
+
         /// <summary>
         /// Imports a CSV of tracks into the List<Track> data structure 
         /// </summary>
