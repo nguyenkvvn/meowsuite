@@ -126,8 +126,9 @@ namespace meowsplit
             //  Dump the CSV for later processing
             MeowCommon.exportStringToFile(MeowCommon.exportTimestampsToCSV(tracks, audioFilePath), Path.GetDirectoryName(audioFilePath) + "\\" + $"{Path.GetFileNameWithoutExtension(audioFilePath)}_INFO.csv");
 
+            
             //  Convert audio files to MP3
-            List<Track> test_reimport = MeowCommon.importCSVtoTracks(Path.GetDirectoryName(audioFilePath) + "\\" + $"{Path.GetFileNameWithoutExtension(audioFilePath)}_INFO.csv");
+            /*List<Track> test_reimport = MeowCommon.importCSVtoTracks(Path.GetDirectoryName(audioFilePath) + "\\" + $"{Path.GetFileNameWithoutExtension(audioFilePath)}_INFO.csv");
             foreach (Track t in test_reimport)
             {
                 string arguments = "-i " + "\"" + Path.GetDirectoryName(audioFilePath) + "\\" + t.file_name + ".wav\" " 
@@ -193,7 +194,8 @@ namespace meowsplit
                 {
                     Console.WriteLine("Error! " + e.Message);
                 }
-            }
+                
+            }*/
         }
 
         /// <summary>
@@ -384,15 +386,17 @@ namespace meowsplit
                 int block_align = reader.WaveFormat.BlockAlign;
 
                 //  For every segment we want to split
-                foreach (var (start, end) in segments)
+                foreach (var track in segments)
                 {
-                    string output_file_name = $"{Path.GetFileNameWithoutExtension(input_file_path)}_Segment_{start:F2}-{end:F2}.wav";
+                    int track_no = segments.IndexOf(track) + 1;
+                    //string output_file_name = $"{Path.GetFileNameWithoutExtension(input_file_path)}_Segment_{start:F2}-{end:F2}.wav";
+                    string output_file_name = "Track " + track_no + ".wav";
                     string output_file_path = Path.Combine(output_directory, output_file_name);
 
                     using (var writer = new WaveFileWriter(output_file_path, reader.WaveFormat))
                     {
-                        long start_position = (long)(start * reader.WaveFormat.AverageBytesPerSecond);
-                        long end_position = (long)(end * reader.WaveFormat.AverageBytesPerSecond);
+                        long start_position = (long)(track.start * reader.WaveFormat.AverageBytesPerSecond);
+                        long end_position = (long)(track.end * reader.WaveFormat.AverageBytesPerSecond);
 
                         //  Adjust positions to align with block boundaries
                         start_position = (start_position / block_align) * block_align;

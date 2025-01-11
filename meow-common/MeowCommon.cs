@@ -24,7 +24,8 @@ namespace meow_common
 
             foreach (var d in segments)
             {
-                csv_string += d.Item1 + "," + d.Item2 + "," + (d.Item2 - d.Item1) + ",,,," + $"{Path.GetFileNameWithoutExtension(input_file_path)}_Segment_{d.Item1:F2}-{d.Item2:F2}" + "," + "\n";
+                int track_no = segments.IndexOf(d) + 1;
+                csv_string += d.Item1 + "," + d.Item2 + "," + (d.Item2 - d.Item1) + ",,,," + "Track " + track_no + "," + "\n";
             }
 
             return csv_string;
