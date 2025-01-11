@@ -11,41 +11,65 @@ namespace meowconcat
     {
         static void Main(string[] args)
         {
-            if (args.Length == 0 || args.Length != 3)
+            if (args.Length == 1)
             {
                 Console.WriteLine("meowconcat usage:\n" +
-                    "\t - arg1: target wav file to merge into" +
-                    "\t - arg2: tool wav file" +
-                    "\t - arg3: output file name");
+                    "\t - arg1: output file name" +
+                    "\t - argN: tool wav files");
 
                 return;
             }
 
-            MergeWavFile(args[0], args[1], args[2]);
+            List<string> tracks_to_merge = args.ToList();
+
+            tracks_to_merge.RemoveAt(0);
+
+            MergeWavFiles(tracks_to_merge, args[0]);
 
         }
 
-        static void MergeWavFile(string target_wav_path, string tool_wav_path, string output_file_path)
+        static void MergeWavFiles(List<string> wavFiles, string outputFilePath)
         {
-            using (var reader1 = new WaveFileReader(target_wav_path))
-            using (var reader2 = new WaveFileReader(tool_wav_path))
+            // Validate input files
+            if (wavFiles.Count == 0)
             {
-                // Ensure formats are the same
-                if (!reader1.WaveFormat.Equals(reader2.WaveFormat))
-                {
-                    throw new InvalidOperationException("WAV files must have the same format to be merged.");
-                }
+                Console.WriteLine("No WAV files provided for merging.");
+                return;
+            }
 
-                // Create a new WAV file writer with the same format
-                using (var writer = new WaveFileWriter(output_file_path, reader1.WaveFormat))
-                {
-                    // Write data from the first file
-                    CopyAudioData(reader1, writer);
+            // Open the first file to get the WaveFormat
+            using (var reader = new WaveFileReader(wavFiles[0]))
+            {
+                var waveFormat = reader.WaveFormat;
 
-                    // Write data from the second file
-                    CopyAudioData(reader2, writer);
+                // Create the output WAV file with the same format
+                using (var writer = new WaveFileWriter(outputFilePath, waveFormat))
+                {
+                    foreach (var wavFile in wavFiles)
+                    {
+                        Console.WriteLine($"Processing: {wavFile}");
+
+                        using (var fileReader = new WaveFileReader(wavFile))
+                        {
+                            // Check if the formats match
+                            if (!fileReader.WaveFormat.Equals(waveFormat))
+                            {
+                                throw new InvalidOperationException("All WAV files must have the same format.");
+                            }
+
+                            // Read data in chunks and write to the output file
+                            byte[] buffer = new byte[1024];
+                            int bytesRead;
+                            while ((bytesRead = fileReader.Read(buffer, 0, buffer.Length)) > 0)
+                            {
+                                writer.Write(buffer, 0, bytesRead);
+                            }
+                        }
+                    }
                 }
             }
+
+            Console.WriteLine($"Files merged successfully into: {outputFilePath}");
         }
 
         static void CopyAudioData(WaveFileReader reader, WaveFileWriter writer)
