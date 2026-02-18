@@ -390,7 +390,8 @@ namespace meowsplit
                 {
                     int track_no = segments.IndexOf(track) + 1;
                     //string output_file_name = $"{Path.GetFileNameWithoutExtension(input_file_path)}_Segment_{start:F2}-{end:F2}.wav";
-                    string output_file_name = "Track " + track_no + ".wav";
+                    //string output_file_name = "Track " + track_no + ".wav";
+                    string output_file_name = $"{Path.GetFileNameWithoutExtension(input_file_path)}_Track_{track_no:F2}.wav";
                     string output_file_path = Path.Combine(output_directory, output_file_name);
 
                     using (var writer = new WaveFileWriter(output_file_path, reader.WaveFormat))
