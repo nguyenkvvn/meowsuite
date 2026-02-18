@@ -16,8 +16,9 @@ As a bonus, it will also invoke `ffmpeg` to convert the .wav files into .mp3 too
     - 0.5s - standard (default)
     - 0.75s - very lax
 
+#### Suggested Parameters:
+- `meowsplit '.\01. No title.wav' 0.025 .25` - used for vinyls played on a Sony PS-LX310BT
+- _default options_ - used for cassettes played on a Sony CMT-M333NT
+
 ## How to build
 Build using Visual Studio 2017, targeting .NET Framework 4.7.2. The NuGet package manager should automatically fetch the `nAudio` library.
-
-## License
-No license specified.
