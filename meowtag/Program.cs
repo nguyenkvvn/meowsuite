@@ -92,6 +92,10 @@ namespace meowtag
 
                         // Save our changes
                         file.Save();
+                        file.Dispose();
+
+                        // Rename the file to something readable and sensical
+                        File.Move(t.file_name + ".mp3", (tracks.IndexOf(t)+1) + ". " + t.track_artist + " - " + t.track_name + ".mp3");
 
 
                     }
