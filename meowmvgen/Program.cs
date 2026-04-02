@@ -70,6 +70,7 @@ class Program
 
                     tracks.Add(info);
                     runningTime += info.Duration;
+                    Console.WriteLine("Found: " + info.Artist + " - " + info.Title + "(" + info.Duration + ")");
                 }
             }
 
@@ -118,6 +119,8 @@ class Program
             }
 
             string videoFilter = BuildVideoFilter(tracks, 1280, 720);
+            Console.WriteLine("VIDEO FILTER:");
+            Console.WriteLine(videoFilter);
 
             // Pass 2: create video from still image + combined audio
             string totalDuration = FormatFfmpegDuration(runningTime);
@@ -275,8 +278,19 @@ class Program
         {
             foreach (var track in tracks)
             {
-                string fullPath = Path.GetFullPath(track.FilePath).Replace("\\", "/");
-                writer.WriteLine("file '" + fullPath + "'");
+                string fullPath = Path.GetFullPath(track.FilePath);
+
+                // Normalize first
+                fullPath = fullPath.Replace("\\", "/");
+
+                // THEN escape apostrophes
+                fullPath = fullPath.Replace("'", "'\\''");
+
+                string line = "file '" + fullPath + "'";
+
+                Console.WriteLine(line); // debug
+
+                writer.WriteLine(line);
             }
         }
     }
@@ -341,7 +355,7 @@ class Program
                 $"y={height - 115}:" +
                 $"fontsize=32:" +
                 $"fontcolor=white:" +
-                $"enable='between(t,{start.ToString(CultureInfo.InvariantCulture)},{end.ToString(CultureInfo.InvariantCulture)})'";
+                $"enable='between(t\\,{start.ToString(CultureInfo.InvariantCulture)}\\,{end.ToString(CultureInfo.InvariantCulture)})'";
 
             parts.Add(draw);
         }
@@ -400,13 +414,13 @@ class Program
             return "";
 
         return text
+            .Replace("'", "’")   // replace straight apostrophe with curly apostrophe
             .Replace("\\", "\\\\")
             .Replace(":", "\\:")
-            .Replace("'", "\\'")
+            .Replace(",", "\\,")
             .Replace("[", "\\[")
             .Replace("]", "\\]")
             .Replace("%", "\\%")
-            .Replace(",", "\\,")
             .Replace(";", "\\;");
     }
 
