@@ -10,7 +10,7 @@ As a bonus, it will also invoke `ffmpeg` to convert the .wav files into .mp3 too
 
 ### Parameters
 
-- `silence_threshold` - _optional_ In decibels, between 1.0db and 0.0db, what the floor of silence should be considered. By default, this value is 0.01db.
+- `silence_threshold` - _optional_ Unitless value representing linear amplitude between 1.0 and 0.0, what the floor of silence should be considered. By default, this value is 0.01db.
 - `minimumSilenceDuration` - _optional_ In seconds, how long a period of silence should be to warrant a track to be cut.
     - 0.25s - very aggressive
     - 0.5s - standard (default)

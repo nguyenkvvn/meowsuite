@@ -18,15 +18,17 @@ namespace meowsplit
             string audioFilePath = "";
             float silenceThreshold = 0.01f; // Adjust this value as needed (0.0 to 1.0)
             double minimumSilenceDuration = 0.25; // Minimum duration of silence in seconds
-                //  0.25s - very aggressive
-                //  0.5s - standard
-                //  0.75s & > - very lax
+                                                  //  0.25s - very aggressive
+                                                  //  0.5s - standard
+                                                  //  0.75s & > - very lax
+
+            int target_tracks = 0; // the number of tracks to optimize for
 
             // Check if parameters are provided
             /// In the case where the user doesn't give anything, explain to the user what the program does.
             if (args.Length < 1)
             {
-                Console.WriteLine("Usage: meowsplit <audiofilepath> (silenceThreshold) (minimumSilenceDuration)");
+                Console.WriteLine("Usage: meowsplit <audiofilepath> (silenceThreshold) (minimumSilenceDuration) (targettracks)");
                 return;
             }
             /// If the user only gives a file path, use defaults.
@@ -93,10 +95,31 @@ namespace meowsplit
                     Console.WriteLine("Error! minimumSilenceDuration must be a double value..." + e.Message);
                     return;
                 }
+
+                try
+                {
+                    target_tracks = int.Parse(args[3]);
+                }
+                catch
+                {
+                    Console.WriteLine("Error! Targe number of tracks must be an integer value..." + e.Message);
+                    return;
+                }
             }
 
             // List to store silence intervals
-            List<(double start, double end)> silenceIntervals = detectSilence(new AudioFileReader(audioFilePath), silenceThreshold, minimumSilenceDuration);
+            List<(double start, double end)> silenceIntervals;
+
+            // If target_tracks is 0, do no optimization or searching.
+            if (target_tracks == 0)
+            {
+                silenceIntervals = detectSilence(new AudioFileReader(audioFilePath), silenceThreshold, minimumSilenceDuration);
+            }
+            else
+            {
+                silenceIntervals;
+            }
+                
 
             // Output the results
             Console.WriteLine("\nSilence intervals detected:");
@@ -126,83 +149,22 @@ namespace meowsplit
             //  Dump the CSV for later processing
             MeowCommon.exportStringToFile(MeowCommon.exportTimestampsToCSV(tracks, audioFilePath), Path.GetDirectoryName(audioFilePath) + "\\" + $"{Path.GetFileNameWithoutExtension(audioFilePath)}_INFO.csv");
 
+        }
+
+        public static float calculate_optimal_threshold(double minimum_silence_duration, int target_tracks)
+        {
+            float best_silence_threshold = 0.0f;
+
             
-            //  Convert audio files to MP3
-            /*List<Track> test_reimport = MeowCommon.importCSVtoTracks(Path.GetDirectoryName(audioFilePath) + "\\" + $"{Path.GetFileNameWithoutExtension(audioFilePath)}_INFO.csv");
-            foreach (Track t in test_reimport)
-            {
-                string arguments = "-i " + "\"" + Path.GetDirectoryName(audioFilePath) + "\\" + t.file_name + ".wav\" " 
-                    + "-codec:a libmp3lame -qscale:a 2 "
-                    + "\"" + Path.GetDirectoryName(audioFilePath) + "\\" + t.file_name + ".mp3\" "
-                    ;
 
-                try
-                {
-                    // Create a new process start info
-                    ProcessStartInfo startInfo = new ProcessStartInfo
-                    {
-                        FileName = @"C:\includes\ffmpeg.exe",  // Application path
-                        Arguments = arguments, // Arguments to pass
-                        UseShellExecute = false, // Set to true if you want to open in shell
-                        RedirectStandardOutput = true, // Capture output
-                        RedirectStandardError = true, // Capture errors
-                        CreateNoWindow = false // Do not show a console window
-                    };
-
-                    // Start the process
-                    using (Process process = Process.Start(startInfo))
-                    {
-                        // Optional: Read output and error streams
-
-                        Console.WriteLine($"Converting to mp3...");
-
-                        string output = process.StandardOutput.ReadToEnd();
-                        string error = process.StandardError.ReadToEnd();
-
-                        // Wait for the process to exit
-                        process.WaitForExit();
-
-                        // Output the results
-                        Console.WriteLine("Output:");
-                        Console.WriteLine(output);
-
-                        if (!string.IsNullOrEmpty(error))
-                        {
-                            Console.WriteLine("Errors:");
-                            Console.WriteLine(error);
-                        }
-
-                        Console.WriteLine($"Process exited with code: {process.ExitCode}");
-
-                        if (process.ExitCode == 0)
-                        {
-                            Console.WriteLine($"Deleting .wav file...");
-
-                            try
-                            {
-                                File.Delete(Path.GetDirectoryName(audioFilePath) + "\\" + t.file_name + ".wav");
-                            }
-                            catch (Exception exx)
-                            {
-                                Console.WriteLine("Error! " + exx.Message);
-                            }
-
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine("Error! " + e.Message);
-                }
-                
-            }*/
+            return best_silence_threshold;
         }
 
         /// <summary>
         /// Calculates periods of silence in a given audio file
         /// </summary>
         /// <param name="afr_handler">Audio file stream</param>
-        /// <param name="silence_threshold">In decibels, what the "bar" ought to be for amplitude to fall under to be considered in a state of silence </param>
+        /// <param name="silence_threshold">A linear measurement of what the "bar" ought to be for amplitude to fall under to be considered in a state of silence </param>
         /// <param name="minimum_silence_duration">In seconds, how long a period of silence should persist to count as silence</param>
         /// <returns>Returns a list of periods of silence in a given audio file</returns>
         public static List<(double, double)> detectSilence(AudioFileReader afr_handler, float silence_threshold, double minimum_silence_duration)
