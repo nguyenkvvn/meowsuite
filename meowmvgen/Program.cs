@@ -14,35 +14,40 @@ class Program
     {
         try
         {
+            //  Get the current working directory we are in
+            /// This should have the MP3s we want to put into a video
             string workingDir = Directory.GetCurrentDirectory();
-            string ffmpegPath = Path.Combine(workingDir, "ffmpeg.exe"); // or just "ffmpeg" if in PATH
 
+            //  Check for FFMPEG and FFPROBE presence
+            string ffmpegPath = Path.Combine(workingDir, "ffmpeg.exe"); // or just "ffmpeg" if in PATH
             if (!System.IO.File.Exists(ffmpegPath) && !IsOnPath("ffmpeg"))
             {
                 Console.WriteLine("ffmpeg.exe was not found in the working folder or PATH.");
                 return 1;
             }
+            string ffmpegExe = System.IO.File.Exists(ffmpegPath) ? ffmpegPath : "ffmpeg";
 
             string ffprobePath = Path.Combine(workingDir, "ffprobe.exe");
-
             if (!System.IO.File.Exists(ffprobePath) && !IsOnPath("ffprobe"))
             {
                 Console.WriteLine("ffprobe.exe was not found in the working folder or PATH.");
                 return 1;
             }
-
             string ffprobeExe = System.IO.File.Exists(ffprobePath) ? ffprobePath : "ffprobe";
 
+            // Collect all the MP3s in the current working directory
             string[] mp3Files = Directory.GetFiles(workingDir, "*.mp3")
                                          .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
                                          .ToArray();
-
+            
+            /// If there are none, get out.
             if (mp3Files.Length == 0)
             {
                 Console.WriteLine("No MP3 files found in the working folder.");
                 return 1;
             }
 
+            /// Create our track listing structure
             var tracks = new List<TrackInfo>();
             TimeSpan runningTime = TimeSpan.Zero;
 
@@ -68,6 +73,7 @@ class Program
                 }
             }
 
+            // Grab album art, otherwise generate it if it doesn't exist.
             string imageFile = FindOrCreateImageFile(workingDir, tracks);
             if (imageFile == null)
             {
@@ -77,17 +83,22 @@ class Program
                 imageFile = CreatePlaceholderImage(workingDir, albumTitle);
             }
 
+            string folderName = new DirectoryInfo(Directory.GetCurrentDirectory()).Name;
+
+            //  Create our concatenation working file to combine the MP3s into one wav for the video
             string concatPath = Path.Combine(workingDir, "concat.txt");
             WriteConcatFile(concatPath, tracks);
 
-            string chaptersPath = Path.Combine(workingDir, "chapters.txt");
+            //  Create our chapters description export.
+            string chaptersPath = Path.Combine(workingDir, folderName + " - chapters.txt");
             WriteChaptersFile(chaptersPath, tracks);
 
+            //  Set our export pathing
+            /// This is the working audio file for our video containing the combined MP3s.
             string combinedAudioPath = Path.Combine(workingDir, "combined.wav");
-            string folderName = new DirectoryInfo(Directory.GetCurrentDirectory()).Name;
-            string outputPath = Path.Combine(workingDir, folderName + ".mp4");
 
-            string ffmpegExe = System.IO.File.Exists(ffmpegPath) ? ffmpegPath : "ffmpeg";
+            /// The name of our output mp4 video will be the name of the directory.
+            string outputPath = Path.Combine(workingDir, folderName + ".mp4");
 
             // Pass 1: join MP3s into one WAV
             string joinArgs =
@@ -153,6 +164,12 @@ class Program
         }
     }
 
+    /// <summary>
+    /// Looks for an album art cover "cover.jpg". If that doesn't exist, look for any image in the folder. And if THAT doesn't work, grab one from the first track.
+    /// </summary>
+    /// <param name="workingDir"></param>
+    /// <param name="tracks"></param>
+    /// <returns></returns>
     static string FindOrCreateImageFile(string workingDir, List<TrackInfo> tracks)
     {
         string preferred = Path.Combine(workingDir, "cover.jpg");
@@ -264,6 +281,11 @@ class Program
         }
     }
 
+    /// <summary>
+    /// Writes a text file containing the chapters based on the length of the songs
+    /// </summary>
+    /// <param name="chaptersPath"></param>
+    /// <param name="tracks"></param>
     static void WriteChaptersFile(string chaptersPath, List<TrackInfo> tracks)
     {
         using (var writer = new StreamWriter(
@@ -285,6 +307,13 @@ class Program
         }
     }
 
+    /// <summary>
+    /// Creates the text overlay string for FFMPEG to render
+    /// </summary>
+    /// <param name="tracks"></param>
+    /// <param name="width"></param>
+    /// <param name="height"></param>
+    /// <returns></returns>
     static string BuildVideoFilter(List<TrackInfo> tracks, int width, int height)
     {
         var parts = new List<string>();
@@ -320,6 +349,13 @@ class Program
         return string.Join(",", parts);
     }
 
+    /// <summary>
+    /// Probe for an accurate time span of an MP# file, rather than relying on MP3 ID tag (which may be inaccurate.)
+    /// </summary>
+    /// <param name="ffprobeExe"></param>
+    /// <param name="filePath"></param>
+    /// <param name="workingDir"></param>
+    /// <returns></returns>
     static TimeSpan GetAudioDurationWithFfprobe(string ffprobeExe, string filePath, string workingDir)
     {
         string args =
