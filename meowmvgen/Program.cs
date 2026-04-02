@@ -70,7 +70,7 @@ class Program
 
                     tracks.Add(info);
                     runningTime += info.Duration;
-                    Console.WriteLine("Found: " + info.Artist + " - " + info.Title + "(" + info.Duration + ")");
+                    Console.WriteLine("Found: " + info.Artist + " - " + info.Title + " (" + info.Duration + ")");
                 }
             }
 
@@ -118,6 +118,18 @@ class Program
                 return joinExitCode;
             }
 
+            //  Measure the true combined length of the combined.wav file
+            TimeSpan combinedDuration = GetAudioDurationWithFfprobe(ffprobeExe, combinedAudioPath, workingDir);
+
+            // Optional: shave off a tiny amount to avoid AAC/container tail
+            combinedDuration = combinedDuration - TimeSpan.FromMilliseconds(50);
+
+            if (combinedDuration < TimeSpan.Zero)
+                combinedDuration = TimeSpan.Zero;
+
+            string finalDuration = FormatFfmpegDuration(combinedDuration);
+
+            // Create our video filter
             string videoFilter = BuildVideoFilter(tracks, 1280, 720);
             Console.WriteLine("VIDEO FILTER:");
             Console.WriteLine(videoFilter);
@@ -136,6 +148,7 @@ class Program
                 $"-pix_fmt yuv420p " +
                 $"-movflags +faststart " +
                 $"-r 1 " +
+                $"-t {finalDuration} " +
                 $"-shortest " +
                 $"{Quote(outputPath)}";
 
@@ -338,15 +351,29 @@ class Program
 
         parts.Add($"drawbox=x=40:y={height - 140}:w={width - 80}:h=80:color=black@0.55:t=fill");
 
-        foreach (var track in tracks)
+        for (int i = 0; i < tracks.Count; i++)
         {
+            var track = tracks[i];
+
             string label = string.IsNullOrWhiteSpace(track.Artist)
                 ? track.Title
-                : track.Artist + " - " + track.Title;
+                : track.Title + " - " + track.Artist;
 
             string safeTitle = EscapeDrawtext(label);
             double start = track.StartTime.TotalSeconds;
             double end = track.EndTime.TotalSeconds;
+
+            string enableExpr;
+
+            if (i == tracks.Count - 1)
+            {
+                // Last track → stay on screen until video ends
+                enableExpr = $"gte(t\\,{start.ToString(CultureInfo.InvariantCulture)})";
+            }
+            else
+            {
+                enableExpr = $"between(t\\,{start.ToString(CultureInfo.InvariantCulture)}\\,{end.ToString(CultureInfo.InvariantCulture)})";
+            }
 
             string draw =
                 $"drawtext=" +
@@ -355,7 +382,7 @@ class Program
                 $"y={height - 115}:" +
                 $"fontsize=32:" +
                 $"fontcolor=white:" +
-                $"enable='between(t\\,{start.ToString(CultureInfo.InvariantCulture)}\\,{end.ToString(CultureInfo.InvariantCulture)})'";
+                $"enable='{enableExpr}'";
 
             parts.Add(draw);
         }
