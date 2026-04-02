@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28307.1062
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.37027.11
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "meowsplit", "meowsplit\meowsplit.csproj", "{3491B09B-C4EB-4FF0-9A74-E6FE971F8495}"
 EndProject
@@ -19,6 +19,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "meowmvgen", "meowmvgen\meowmvgen.csproj", "{9E3EA580-F220-49E8-BA16-2091F0E89479}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -50,6 +52,10 @@ Global
 		{80427CDB-B324-4AC9-8342-AE9F5457694C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{80427CDB-B324-4AC9-8342-AE9F5457694C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{80427CDB-B324-4AC9-8342-AE9F5457694C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E3EA580-F220-49E8-BA16-2091F0E89479}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E3EA580-F220-49E8-BA16-2091F0E89479}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E3EA580-F220-49E8-BA16-2091F0E89479}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E3EA580-F220-49E8-BA16-2091F0E89479}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
