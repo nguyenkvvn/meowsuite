@@ -357,7 +357,7 @@ class Program
 
             string label = string.IsNullOrWhiteSpace(track.Artist)
                 ? track.Title
-                : track.Title + " - " + track.Artist;
+                : track.Artist + " - " + track.Title;
 
             string safeTitle = EscapeDrawtext(label);
             double start = track.StartTime.TotalSeconds;
