@@ -34,11 +34,25 @@ namespace meowtag
             {
                 string current_file_path_MP3 = input_files_location_path + "\\" + t.file_name + ".mp3";
 
+                int friendly_index = tracks.IndexOf(t) + 1;
+
+                bool already_renamed = false;
+
+                if (!(System.IO.File.Exists(current_file_path_MP3)))
+                {
+                    
+                    string post_wav_renamed_file_name = friendly_index + ". " + t.track_artist + " - " + t.track_name;
+
+                    current_file_path_MP3 = input_files_location_path + "\\" + post_wav_renamed_file_name + ".mp3";
+
+                    already_renamed = true;
+                }
+
                 string current_file_path_WAV = input_files_location_path + "\\" + t.file_name + ".wav";
 
                 if (System.IO.File.Exists(current_file_path_MP3))
                 {
-                    int friendly_index = tracks.IndexOf(t) + 1;
+                    
 
                     Console.WriteLine("[Info] Tagging: " + friendly_index + " [" + t.track_album + "] " + t.track_artist + " - " + t.track_name);
                     try
@@ -97,7 +111,11 @@ namespace meowtag
                         file.Dispose();
 
                         // Rename the file to something readable and sensical
-                        File.Move(t.file_name + ".mp3", (tracks.IndexOf(t)+1) + ". " + t.track_artist + " - " + t.track_name + ".mp3");
+                        if (!already_renamed)
+                        {
+                            File.Move(t.file_name + ".mp3", (tracks.IndexOf(t) + 1) + ". " + t.track_artist + " - " + t.track_name + ".mp3");
+                        }
+                        
 
 
                     }
