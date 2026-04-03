@@ -32,9 +32,11 @@ namespace meowtag
             //  Iterate over each row and merge in 
             foreach (Track t in tracks)
             {
-                string current_file_path = input_files_location_path + "\\" + t.file_name + ".mp3";
+                string current_file_path_MP3 = input_files_location_path + "\\" + t.file_name + ".mp3";
 
-                if (System.IO.File.Exists(current_file_path))
+                string current_file_path_WAV = input_files_location_path + "\\" + t.file_name + ".wav";
+
+                if (System.IO.File.Exists(current_file_path_MP3))
                 {
                     int friendly_index = tracks.IndexOf(t) + 1;
 
@@ -42,7 +44,7 @@ namespace meowtag
                     try
                     {
                         //  Open the MP3 file
-                        var file = TagLib.File.Create(current_file_path);
+                        var file = TagLib.File.Create(current_file_path_MP3);
 
                         //  Insert in the metadata
                         file.Tag.Title = t.track_name;
@@ -106,11 +108,23 @@ namespace meowtag
                 }
                 else
                 {
-                    Console.WriteLine("WARNING! File not found: " + current_file_path);
+                    Console.WriteLine("WARNING! File not found: " + current_file_path_MP3);
                 }
+
+                //  Add a simple rename routine for WAV files
+                if (System.IO.File.Exists(current_file_path_WAV))
+                {
+                    // Rename the file to something readable and sensical
+                    File.Move(t.file_name + ".wav", (tracks.IndexOf(t) + 1) + ". " + t.track_artist + " - " + t.track_name + ".wav");
+                }
+                else
+                {
+                    Console.WriteLine("WARNING! File not found: " + current_file_path_WAV);
+                }
+
             }
 
-            
+
         }
     }
 }
