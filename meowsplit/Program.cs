@@ -100,7 +100,7 @@ namespace meowsplit
                 {
                     target_tracks = int.Parse(args[3]);
                 }
-                catch
+                catch (Exception e)
                 {
                     Console.WriteLine("Error! Targe number of tracks must be an integer value..." + e.Message);
                     return;
@@ -151,6 +151,9 @@ namespace meowsplit
             string target_folder = Path.Combine(source_folder, "WAV_original");
             string file_name = Path.GetFileName(audioFilePath);
             string destination_path = Path.Combine(target_folder, file_name);
+
+            Directory.CreateDirectory(target_folder);
+
             /// We copy, because in case the generation doesn't work well, we can trigger again.
             File.Copy(audioFilePath, destination_path, true);
 
