@@ -111,13 +111,13 @@ namespace meowsplit
             List<(double start, double end)> silenceIntervals;
 
             // If target_tracks is 0, do no optimization or searching.
-            if (target_tracks == 0)
+            if (true) //target_tracks == 0)
             {
                 silenceIntervals = detectSilence(new AudioFileReader(audioFilePath), silenceThreshold, minimumSilenceDuration);
             }
             else
             {
-                silenceIntervals;
+                //silenceIntervals;
             }
                 
 
@@ -145,6 +145,14 @@ namespace meowsplit
 
             //  Split the audio
             splitAudio(audioFilePath, tracks, Path.GetDirectoryName(audioFilePath));
+
+            // Copy the file into a WAV_original folder
+            string source_folder = Path.GetDirectoryName(audioFilePath);
+            string target_folder = Path.Combine(source_folder, "WAV_original");
+            string file_name = Path.GetFileName(audioFilePath);
+            string destination_path = Path.Combine(target_folder, file_name);
+            /// We copy, because in case the generation doesn't work well, we can trigger again.
+            File.Copy(audioFilePath, destination_path, true);
 
             //  Dump the CSV for later processing
             MeowCommon.exportStringToFile(MeowCommon.exportTimestampsToCSV(tracks, audioFilePath), Path.GetDirectoryName(audioFilePath) + "\\" + $"{Path.GetFileNameWithoutExtension(audioFilePath)}_INFO.csv");
