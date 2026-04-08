@@ -39,7 +39,7 @@ class Program
             string[] mp3Files = Directory.GetFiles(workingDir, "*.mp3")
                                          .OrderBy(f => f, StringComparer.OrdinalIgnoreCase)
                                          .ToArray();
-            
+
             /// If there are none, get out.
             if (mp3Files.Length == 0)
             {
@@ -57,6 +57,7 @@ class Program
                 {
                     var info = new TrackInfo
                     {
+                        TrackNumer = Convert.ToInt32(tagFile.Tag.Track),
                         FilePath = Path.GetFullPath(mp3),
                         FileName = Path.GetFileName(mp3),
                         Title = string.IsNullOrWhiteSpace(tagFile.Tag.Title)
@@ -65,14 +66,25 @@ class Program
                         Artist = tagFile.Tag.FirstPerformer ?? "",
                         Album = tagFile.Tag.Album ?? "",
                         Duration = GetAudioDurationWithFfprobe(ffprobeExe, mp3, workingDir),
-                        StartTime = runningTime
+                        //StartTime = runningTime
                     };
 
                     tracks.Add(info);
-                    runningTime += info.Duration;
+                    //runningTime += info.Duration;
                     Console.WriteLine("Found: " + info.Artist + " - " + info.Title + " (" + info.Duration + ")");
                 }
             }
+
+            tracks = tracks.OrderBy(track => track.TrackNumer).ToList();
+
+            // Only after sorting tracks do we calculate time
+            foreach (TrackInfo t in tracks)
+            {
+                t.StartTime = runningTime;
+                runningTime += t.Duration;
+            }
+
+
 
             // Grab album art, otherwise generate it if it doesn't exist.
             string imageFile = FindOrCreateImageFile(workingDir, tracks);
@@ -531,6 +543,7 @@ class Program
 
     class TrackInfo
     {
+        public int TrackNumer { get; set; }
         public string FilePath { get; set; }
         public string FileName { get; set; }
         public string Title { get; set; }
